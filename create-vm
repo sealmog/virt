@@ -2,21 +2,8 @@
 
 #   create-vm - Quickly create guest VMs using cloud image files and cloud-init.
 
-#   Copyright 2018-2023 Earl C. Ruby III
-#
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
-#
-#       http://www.apache.org/licenses/LICENSE-2.0
-#
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-
 # Set VM_IMAGE_DIR environment variable to override default storage location for VMs
-VM_IMAGE_DIR=${VM_IMAGE_DIR:-"/data"}
+VM_IMAGE_DIR=${VM_IMAGE_DIR:-"/data/libvirt"}
 
 HOSTNAME=
 IMG_FQN=
@@ -103,8 +90,8 @@ fi
 
 mkdir -p "$VM_IMAGE_DIR"/{images,xml,init,base}
 
-echo "Creating a qcow2 image file ${VM_IMAGE_DIR}/images/${HOSTNAME}.img that uses the cloud image file ${IMG_FQN} as its base"
-qemu-img create -b "${IMG_FQN}" -f qcow2 -F qcow2 "${VM_IMAGE_DIR}/images/${HOSTNAME}.img" "${STORAGE}G"
+echo "Creating a qcow2 image file ${VM_IMAGE_DIR}/images/${HOSTNAME}.qcow2 that uses the cloud image file ${IMG_FQN} as its base"
+qemu-img create -b "${IMG_FQN}" -f qcow2 -F qcow2 "${VM_IMAGE_DIR}/images/${HOSTNAME}.qcow2" "${STORAGE}G"
 
 echo "Creating meta-data file $VM_IMAGE_DIR/init/meta-data"
 cat > "$VM_IMAGE_DIR/init/meta-data" << EOF
@@ -150,7 +137,7 @@ virt-install \
     --name="${HOSTNAME}" \
     --network "bridge=${BRIDGE},model=virtio" $MACCMD \
     --import \
-    --disk "path=${VM_IMAGE_DIR}/images/${HOSTNAME}.img,format=qcow2" \
+    --disk "path=${VM_IMAGE_DIR}/images/${HOSTNAME}.qcow2,format=qcow2" \
     --disk "path=$VM_IMAGE_DIR/images/${HOSTNAME}-cidata.img,device=cdrom" \
     --ram="${RAM}" \
     --vcpus="${VCPUS}" \
@@ -169,7 +156,7 @@ virt-install \
 # Make a backup of the VM's XML definition file
 virsh dumpxml "${HOSTNAME}" > "${VM_IMAGE_DIR}/xml/${HOSTNAME}.xml"
 
-if [ -n $VERBOSE ]; then
+if [[ -n $VERBOSE ]]; then
     set +xv
 fi
 

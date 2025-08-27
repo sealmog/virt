@@ -1,0 +1,8 @@
+# curl -LJO https://cloud-images.ubuntu.com/minimal/releases/noble/release/ubuntu-24.04-minimal-cloudimg-amd64.img
+86b5779c341e60f66530f4ebde4c86c3be0323f4366166558020c020e8067192 *ubuntu-24.04-minimal-cloudimg-amd64.img
+
+# curl -LJO https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-amd64.img
+834af9cd766d1fd86eca156db7dff34c3713fbbc7f5507a3269be2a72d2d1820 *ubuntu-24.04-server-cloudimg-amd64.img
+
+# curl -LJO https://cloud.centos.org/centos/10-stream/x86_64/images/CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2
+SHA256 (CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2) = 0b8ba57ea7500ec45c856a59fd33bcaed4ebbf5e7664ff7bd6763bbed46c8075
