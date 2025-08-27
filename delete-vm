@@ -7,7 +7,7 @@ VM=$1
 # Set VM_IMAGE_DIR environment variable to override default storage location for VMs
 VM_IMAGE_DIR=${VM_IMAGE_DIR:-"/data/libvirt"}
 
-VM_IMAGE="${VM_IMAGE_DIR}/images/$VM.img"
+VM_IMAGE="${VM_IMAGE_DIR}/images/$VM.qcow2"
 CI_IMAGE="${VM_IMAGE_DIR}/images/$VM-cidata.img"
 
 usage()
@@ -27,6 +27,7 @@ if [[ -e $VM_IMAGE ]]; then
     virsh destroy "$VM"
     virsh undefine "$VM"
     rm -fv "$VM_IMAGE" "$CI_IMAGE"
+    rm -fv ${VM_IMAGE_DIR}/xml/${VM}.xml
 else
     echo "Cannot find an VM image file named '$VM_IMAGE'. Attempting undefine..."
     virsh undefine "$VM"
