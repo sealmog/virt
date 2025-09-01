@@ -12,6 +12,7 @@ RAM=4096
 VCPUS=2
 STORAGE=60
 BRIDGE=virbr0
+ETH=enp3s0
 MAC=
 VERBOSE=
 ADDR=
@@ -34,6 +35,7 @@ OPTIONS:
    -r      RAM in MB (defaults to ${RAM})
    -c      Number of VCPUs (defaults to ${VCPUS})
    -s      Amount of storage to allocate in GB (defaults to ${STORAGE})
+   -t      Ehernet interface (default enp3s0)
    -b      Bridge interface to use (defaults to ${BRIDGE})
    -m      MAC address to use (default is to use a randomly-generated MAC)
    -a      IPv4 address (default 192.168.0.42/24)
@@ -45,7 +47,7 @@ OPTIONS:
 EOF
 }
 
-while getopts "h:n:i:k:r:c:s:b:m:a:g:d:e:x:v" option; do
+while getopts "h:n:i:k:r:c:s:t:b:m:a:g:d:e:x:v" option; do
     case "${option}"
     in
         h)
@@ -58,6 +60,7 @@ while getopts "h:n:i:k:r:c:s:b:m:a:g:d:e:x:v" option; do
         r) RAM=${OPTARG};;
         c) VCPUS=${OPTARG};;
         s) STORAGE=${OPTARG};;
+        t) ETH=${OPTARG};;
         b) BRIDGE=${OPTARG};;
         m) MAC=${OPTARG};;
         a) ADDR=${OPTARG};;
@@ -172,7 +175,7 @@ cat > "$VM_IMAGE_DIR/init/network-config" << EOF
 network:
   version: 2
   ethernets:
-    enp3s0:
+    ${ETH}:
       addresses: [${ADDR}]
       gateway4: ${GW}
       dhcp4: no
