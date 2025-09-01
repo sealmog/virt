@@ -14,6 +14,10 @@ STORAGE=60
 BRIDGE=virbr0
 MAC=
 VERBOSE=
+ADDR=
+GW=
+DNS=
+DNS_SEARCH=
 
 usage()
 {
@@ -32,11 +36,16 @@ OPTIONS:
    -s      Amount of storage to allocate in GB (defaults to ${STORAGE})
    -b      Bridge interface to use (defaults to ${BRIDGE})
    -m      MAC address to use (default is to use a randomly-generated MAC)
+   -a      IPv4 address (default 192.168.0.42/24)
+   -g      IPv4 gateway (default 192.168.0.1)
+   -d      IPv4 domain name servers (default 192.168.0.1)
+   -e      DNS search domains
+   -x      Exec script
    -v      Verbose
 EOF
 }
 
-while getopts "h:n:i:k:r:c:s:b:m:v" option; do
+while getopts "h:n:i:k:r:c:s:b:m:a:g:d:e:x:v" option; do
     case "${option}"
     in
         h)
@@ -51,6 +60,11 @@ while getopts "h:n:i:k:r:c:s:b:m:v" option; do
         s) STORAGE=${OPTARG};;
         b) BRIDGE=${OPTARG};;
         m) MAC=${OPTARG};;
+        a) ADDR=${OPTARG};;
+        g) GW=${OPTARG};;
+        d) DNS=${OPTARG};;
+        e) DNS_SEARCH=${OPTARG};;
+        x) EXEC=${OPTARG};;
         v) VERBOSE=1;;
         *)
             usage
@@ -83,6 +97,36 @@ if ! [[ -f $IMG_FQN ]]; then
     exit 1
 fi
 
+if [[ -z $ADDR ]]; then
+    echo "ERROR: IPv4 address is required"
+    usage
+    exit 1
+fi
+
+if [[ -z $GW ]]; then
+    echo "ERROR: IPv4 gateway is required"
+    usage
+    exit 1
+fi
+
+if [[ -z $DNS ]]; then
+    echo "ERROR: IPv4 DNS is required"
+    usage
+    exit 1
+fi
+
+if [[ -z $DNS_SEARCH ]]; then
+    echo "ERROR: DNS search is required"
+    usage
+    exit 1
+fi
+
+if [[ -z $EXEC ]]; then
+    echo "ERROR: Exec script URL is required"
+    usage
+    exit 1
+fi
+
 if [[ -n $VERBOSE ]]; then
     echo "Building ${HOSTNAME} in $VM_IMAGE_DIR"
     set -xv
@@ -103,6 +147,9 @@ echo "Creating user-data file $VM_IMAGE_DIR/init/user-data"
 cat > "$VM_IMAGE_DIR/init/user-data" << EOF
 #cloud-config
 
+runcmd:
+  - [ curl, -sfL, $EXEC, |, sh, - ]
+
 users:
   - name: ansible
     sudo: ["ALL=(ALL) NOPASSWD:ALL"]
@@ -110,6 +157,22 @@ users:
     shell: /bin/bash
     homedir: /var/ansible
     ssh_authorized_keys:
+EOF
+
+echo "Creating network-config file $VM_IMAGE_DIR/init/network-config"
+cat > "$VM_IMAGE_DIR/init/network-config" << EOF
+network:
+  version: 2
+  ethernets:
+    enp3s0:
+      addresses: [${ADDR}]
+      gateway4: ${GW}
+      dhcp4: no
+      match:
+        macaddress: '${MAC}'
+      nameservers:
+        addresses: [${DNS}]
+        search: [${DNS_SEARCH}]
 EOF
 
 echo "Adding keys from the public key file $AUTH_KEYS_FQN to the user-data file"
@@ -125,7 +188,7 @@ echo "Generating the cidata ISO file $VM_IMAGE_DIR/images/${HOSTNAME}-cidata.iso
         -volid cidata \
         -rational-rock \
         -joliet \
-        user-data meta-data
+        user-data meta-data network-config
 )
 
 MACCMD=
@@ -135,10 +198,9 @@ fi
 
 virt-install \
     --name="${HOSTNAME}" \
-    --network "bridge=${BRIDGE},model=virtio" $MACCMD \
-    --import \
-    --disk "path=${VM_IMAGE_DIR}/images/${HOSTNAME}.qcow2,format=qcow2" \
-    --disk "path=$VM_IMAGE_DIR/images/${HOSTNAME}-cidata.img,device=cdrom" \
+    --network "network:macvtap,model=virtio" "${MACCMD}" \
+    --disk "path=${VM_IMAGE_DIR}/images/${HOSTNAME}.qcow2,format=qcow2,bus=virtio" \
+    --disk "path=${VM_IMAGE_DIR}/images/${HOSTNAME}-cidata.img,device=cdrom" \
     --ram="${RAM}" \
     --vcpus="${VCPUS}" \
     --autostart \
@@ -146,15 +208,22 @@ virt-install \
     --arch x86_64 \
     --accelerate \
     --check-cpu \
-    --osinfo detect=on,require=off \
     --force \
+    --osinfo ubuntu24.04 \
     --watchdog=default \
-    --graphics vnc,listen=0.0.0.0 \
+    --graphics vnc \
     --noautoconsole \
+    --import \
     --debug
 
+#    --osinfo ubuntu24.04 \
+#    --osinfo centos-stream10 \
+#    --osinfo detect=on,require=off \
+#    --network "bridge=${BRIDGE},model=virtio" $MACCMD \
+#    --graphics vnc,listen=0.0.0.0 \
+
 # Make a backup of the VM's XML definition file
-virsh dumpxml "${HOSTNAME}" > "${VM_IMAGE_DIR}/xml/${HOSTNAME}.xml"
+# virsh dumpxml "${HOSTNAME}" > "${VM_IMAGE_DIR}/xml/${HOSTNAME}.xml"
 
 if [[ -n $VERBOSE ]]; then
     set +xv
