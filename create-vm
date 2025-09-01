@@ -8,15 +8,15 @@ VM_IMAGE_DIR=${VM_IMAGE_DIR:-"/data/libvirt"}
 HOSTNAME=
 IMG_FQN=
 AUTH_KEYS_FQN=
-RAM=2048
+RAM=4096
 VCPUS=2
 STORAGE=60
 BRIDGE=virbr0
 MAC=
 VERBOSE=
 ADDR=
-GW=
-DNS=
+GW=192.168.0.1
+DNS=192.168.0.1
 DNS_SEARCH=
 
 usage()
@@ -40,7 +40,7 @@ OPTIONS:
    -g      IPv4 gateway (default 192.168.0.1)
    -d      IPv4 domain name servers (default 192.168.0.1)
    -e      DNS search domains
-   -x      Exec script
+   -x      Exec script URL
    -v      Verbose
 EOF
 }
@@ -122,7 +122,7 @@ if [[ -z $DNS_SEARCH ]]; then
 fi
 
 if [[ -z $EXEC ]]; then
-    echo "ERROR: Exec script URL is required"
+    echo "ERROR: EXEC script URL is required"
     usage
     exit 1
 fi
@@ -147,8 +147,16 @@ echo "Creating user-data file $VM_IMAGE_DIR/init/user-data"
 cat > "$VM_IMAGE_DIR/init/user-data" << EOF
 #cloud-config
 
+write_files:
+- content: |
+    #!/bin/sh
+    set -e
+    touch /root/sample.log
+  path: /root/runcmd.sh
+
 runcmd:
-  - [ curl, -sfL, $EXEC, |, sh, - ]
+  - [ /bin/sh, /root/runcmd.sh ]
+  - [ /usr/bin/curl, -sfL, $EXEC, |, /bin/sh, - ]
 
 users:
   - name: ansible
@@ -213,9 +221,9 @@ virt-install \
     --watchdog=default \
     --graphics vnc \
     --noautoconsole \
-    --import \
-    --debug
-
+    --import
+    
+#    --debug
 #    --osinfo ubuntu24.04 \
 #    --osinfo centos-stream10 \
 #    --osinfo detect=on,require=off \
@@ -223,7 +231,7 @@ virt-install \
 #    --graphics vnc,listen=0.0.0.0 \
 
 # Make a backup of the VM's XML definition file
-# virsh dumpxml "${HOSTNAME}" > "${VM_IMAGE_DIR}/xml/${HOSTNAME}.xml"
+virsh dumpxml "${HOSTNAME}" > "${VM_IMAGE_DIR}/xml/${HOSTNAME}.xml"
 
 if [[ -n $VERBOSE ]]; then
     set +xv
