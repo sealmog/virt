@@ -152,11 +152,11 @@ write_files:
     #!/bin/sh
     set -e
     touch /root/sample.log
+    /usr/bin/curl -sfL ${EXEC} | /bin/sh -
   path: /root/runcmd.sh
 
 runcmd:
   - [ /bin/sh, /root/runcmd.sh ]
-  - [ /usr/bin/curl, -sfL, $EXEC, |, /bin/sh, - ]
 
 users:
   - name: ansible
