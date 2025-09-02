@@ -2,7 +2,7 @@
 
 set -e
 
-sysctl_k8s() {
+system() {
 cat <<EOF | tee /etc/sysctl.d/11-k8s.conf
 net.ipv4.ip_forward = 1
 EOF
@@ -10,16 +10,35 @@ EOF
 sysctl --system
 }
 
+crio() {
+CRIO_VERSION=v1.32
+
+cat <<EOF | tee /etc/yum.repos.d/cri-o.repo
+[cri-o]
+name=CRI-O
+baseurl=https://download.opensuse.org/repositories/isv:/cri-o:/stable:/$CRIO_VERSION/rpm/
+enabled=1
+gpgcheck=1
+gpgkey=https://download.opensuse.org/repositories/isv:/cri-o:/stable:/$CRIO_VERSION/rpm/repodata/repomd.xml.key
+EOF
+
+dnf install -y container-selinux
+dnf install -y cri-o
+
+systemctl enable --now crio.service
+}
+
 kubernetes() {
+KUBERNETES_VERSION=v1.32
 
 # This overwrites any existing configuration in /etc/yum.repos.d/kubernetes.repo
 cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
-baseurl=https://pkgs.k8s.io/core:/stable:/v1.32/rpm/
+baseurl=https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/rpm/
 enabled=1
 gpgcheck=1
-gpgkey=https://pkgs.k8s.io/core:/stable:/v1.32/rpm/repodata/repomd.xml.key
+gpgkey=https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/rpm/repodata/repomd.xml.key
 exclude=kubelet kubeadm kubectl cri-tools kubernetes-cni
 EOF
 
@@ -35,7 +54,8 @@ helm() {
 }
 
 run() {
-    sysctl_k8s
+    system
+    crio
     kubernetes
     helm
 }
