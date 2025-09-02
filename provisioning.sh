@@ -18,7 +18,7 @@ create_dir $ETCRKE2
 KUBEAUDIT=/var/log/kube-audit
 create_dir $KUBEAUDIT
 
-if [ "${FIRST}" ] ; then
+if "${FIRST}" ; then
 cat <<EOF >> /etc/rancher/rke2/config.yaml
 token: $TOKEN
 tls-san:
@@ -68,6 +68,7 @@ rke2() {
 
     systemctl enable rke2-server.service
     systemctl start rke2-server.service
+    systemctl status rke2-server.service
 }
 
 run() {
