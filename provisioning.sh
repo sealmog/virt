@@ -6,13 +6,6 @@ LOGNAME="provision"
 LOGPATH="/root"
 TIMESTAMP="$(date +%Y%m%d_%H%M)"
 
-
-run() {
-    echo "Provision log will be written to $LOGPATH/$LOGNAME-$TIMESTAMP.log"
-    exec > "$LOGPATH/$LOGNAME-$TIMESTAMP.log" 2>&1
-    rke2_pre
-}
-
 rke2_pre() {
         
 mkdir /var/log/kube-audit
@@ -46,3 +39,11 @@ if ! echo "${KUBECONFIG-}" | grep -q /etc/rancher/rke2/rke2.yaml ; then
 fi
 EOF
 }
+
+run() {
+    echo "Provision log will be written to $LOGPATH/$LOGNAME-$TIMESTAMP.log"
+    exec > "$LOGPATH/$LOGNAME-$TIMESTAMP.log" 2>&1
+    rke2_pre
+}
+
+run
