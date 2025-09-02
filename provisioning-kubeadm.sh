@@ -7,7 +7,7 @@ cat <<EOF | tee /etc/sysctl.d/11-k8s.conf
 net.ipv4.ip_forward = 1
 EOF
 
-sysctl -p
+sysctl --system
 }
 
 kubernetes() {
