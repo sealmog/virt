@@ -45,11 +45,13 @@ OPTIONS:
    -d      IPv4 domain name servers (default 192.168.0.1)
    -e      DNS search domains
    -x      Exec script URL
+   -u      Racnher URL
+   -w      Rancher token
    -v      Verbose
 EOF
 }
 
-while getopts "h:n:i:k:r:c:s:t:o:b:m:a:g:d:e:x:v" option; do
+while getopts "h:n:i:k:r:c:s:t:o:b:m:a:g:d:e:x:u:w:v" option; do
     case "${option}"
     in
         h)
@@ -71,6 +73,8 @@ while getopts "h:n:i:k:r:c:s:t:o:b:m:a:g:d:e:x:v" option; do
         d) DNS=${OPTARG};;
         e) DNS_SEARCH=${OPTARG};;
         x) EXEC=${OPTARG};;
+        u) RCH=${OPTARG};;
+        w) TOKEN=${OPTARG};;
         v) VERBOSE=1;;
         *)
             usage

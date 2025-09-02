@@ -57,10 +57,14 @@ EOF
 
 rke() {
     curl -sfL https://get.rke2.io | INSTALL_RKE2_CHANNEL=v1.30 sh -x -
+
+    systemctl enable rke2-server.service
+    systemctl start rke2-server.service
 }
 
 run() {
     rke2_pre
+    rke2
 }
 
 run
