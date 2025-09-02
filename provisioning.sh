@@ -71,9 +71,14 @@ rke2() {
     systemctl status rke2-server.service
 }
 
+helm() {
+    curl -sfL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash -x -
+}
+
 run() {
     rke2_pre
     rke2
+    helm
 }
 
 run
