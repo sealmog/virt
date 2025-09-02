@@ -2,13 +2,15 @@
 
 set -e
 
-init() {
-
+sysctl_k8s() {
 cat <<EOF | tee /etc/sysctl.d/11-k8s.conf
 net.ipv4.ip_forward = 1
 EOF
 
 sysctl -p
+}
+
+kubernetes() {
 
 # This overwrites any existing configuration in /etc/yum.repos.d/kubernetes.repo
 cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
@@ -33,7 +35,8 @@ helm() {
 }
 
 run() {
-    init
+    sysctl_k8s
+    kubernetes
     helm
 }
 
