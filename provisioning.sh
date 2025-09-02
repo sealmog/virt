@@ -2,13 +2,15 @@
 
 set -e
 
-LOGNAME="provision"
-LOGPATH="/root"
-TIMESTAMP="$(date +%Y%m%d_%H%M)"
-
 rke2_pre() {
-        
-mkdir /var/log/kube-audit
+
+KUBEAUDIT=/var/log/kube-audit
+
+if [ -d "$KUBEAUDIT" ]; then
+  echo "Directory '$KUBEAUDIT' exists."
+else
+  mkdir -p $KUBEAUDIT
+fi
 
 cat <<EOF >> /etc/profile.d/rke2.sh
 #!/bin/bash
