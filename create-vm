@@ -20,6 +20,7 @@ ADDR=
 GW=192.168.0.1
 DNS=192.168.0.1
 DNS_SEARCH=
+FIRST=false
 
 usage()
 {
@@ -47,11 +48,12 @@ OPTIONS:
    -x      Exec script URL
    -u      Racnher URL
    -w      Rancher token
+   -f      Is first Rancher node
    -v      Verbose
 EOF
 }
 
-while getopts "h:n:i:k:r:c:s:t:o:b:m:a:g:d:e:x:u:w:v" option; do
+while getopts "h:n:i:k:r:c:s:t:o:b:m:a:g:d:e:x:u:w:f:v" option; do
     case "${option}"
     in
         h)
@@ -75,6 +77,7 @@ while getopts "h:n:i:k:r:c:s:t:o:b:m:a:g:d:e:x:u:w:v" option; do
         x) EXEC=${OPTARG};;
         u) RCH=${OPTARG};;
         w) TOKEN=${OPTARG};;
+        f) FIRST=${OPTARG};;
         v) VERBOSE=1;;
         *)
             usage
@@ -168,7 +171,11 @@ write_files:
 
     echo "runcmd log will be written to \$LOGPATH/\$LOGNAME-\$TIMESTAMP.log"
     exec > "\$LOGPATH/\$LOGNAME-\$TIMESTAMP.log" 2>&1
-    /usr/bin/curl -sfL ${EXEC} | TOKEN=$TOKEN RCH=$RCH /bin/bash -x -
+
+    /usr/bin/sed -i "s/SELINUX=enforcing/SELINUX=disabled/" /etc/selinux/config
+    /usr/sbin/setenforce 0
+
+    /usr/bin/curl -sfL ${EXEC} | TOKEN=$TOKEN RCH=$RCH FIRST=$FIRST /bin/bash -x -
   path: /root/runcmd.sh
 
 runcmd:

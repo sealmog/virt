@@ -6,3 +6,6 @@
 
 # curl -LJO https://cloud.centos.org/centos/10-stream/x86_64/images/CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2
 SHA256 (CentOS-Stream-GenericCloud-10-latest.x86_64.qcow2) = 0b8ba57ea7500ec45c856a59fd33bcaed4ebbf5e7664ff7bd6763bbed46c8075
+
+# curl -LJO https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-x86_64-9-latest.x86_64.qcow2
+SHA256 (CentOS-Stream-GenericCloud-x86_64-9-latest.x86_64.qcow2) = 543c9a2e0494d7ceadec3a3268a51b46ebfdb6cba060ba96bdf77fcb66b3640e

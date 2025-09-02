@@ -18,12 +18,20 @@ create_dir $ETCRKE2
 KUBEAUDIT=/var/log/kube-audit
 create_dir $KUBEAUDIT
 
+if [ "${FIRST}" ] ; then
+cat <<EOF >> /etc/rancher/rke2/config.yaml
+token: $TOKEN
+tls-san:
+  - $RCH
+EOF
+else
 cat <<EOF >> /etc/rancher/rke2/config.yaml
 token: $TOKEN
 server: https://$RCH:9345
 tls-san:
   - $RCH
 EOF
+fi
 
 cat <<EOF >> /etc/profile.d/rke2.sh
 #!/bin/bash
