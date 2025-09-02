@@ -2,15 +2,21 @@
 
 set -e
 
+create_dir() {
+    if [ -d "$1" ]; then
+        echo "Directory '$1' exists."
+    else
+        mkdir -p "$1"
+    fi
+}
+
 rke2_pre() {
 
-KUBEAUDIT=/var/log/kube-audit
+ETCRKE2=/etc/rancher/rke2
+create_dir $ETCRKE2
 
-if [ -d "$KUBEAUDIT" ]; then
-  echo "Directory '$KUBEAUDIT' exists."
-else
-  mkdir -p $KUBEAUDIT
-fi
+KUBEAUDIT=/var/log/kube-audit
+create_dir $KUBEAUDIT
 
 cat <<EOF >> /etc/profile.d/rke2.sh
 #!/bin/bash
