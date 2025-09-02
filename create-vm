@@ -164,7 +164,7 @@ write_files:
 
     echo "runcmd log will be written to \$LOGPATH/\$LOGNAME-\$TIMESTAMP.log"
     exec > "\$LOGPATH/\$LOGNAME-\$TIMESTAMP.log" 2>&1
-    /usr/bin/curl -sfL ${EXEC} | /bin/bash -x -
+    /usr/bin/curl -sfL ${EXEC} | TOKEN=$TOKEN RCH=$RCH /bin/bash -x -
   path: /root/runcmd.sh
 
 runcmd:

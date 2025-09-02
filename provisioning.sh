@@ -18,6 +18,13 @@ create_dir $ETCRKE2
 KUBEAUDIT=/var/log/kube-audit
 create_dir $KUBEAUDIT
 
+cat <<EOF >> /etc/rancher/rke2/config.yaml
+token: $TOKEN
+server: https://$RCH:9345
+tls-san:
+  - $RCH
+EOF
+
 cat <<EOF >> /etc/profile.d/rke2.sh
 #!/bin/bash
 ################################################################################
@@ -46,6 +53,10 @@ if ! echo "${KUBECONFIG-}" | grep -q /etc/rancher/rke2/rke2.yaml ; then
     export KUBECONFIG=/etc/rancher/rke2/rke2.yaml
 fi
 EOF
+}
+
+rke() {
+    curl -sfL https://get.rke2.io | INSTALL_RKE2_CHANNEL=v1.30 sh -x -
 }
 
 run() {
