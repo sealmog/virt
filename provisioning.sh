@@ -41,8 +41,6 @@ EOF
 }
 
 run() {
-    echo "Provision log will be written to $LOGPATH/$LOGNAME-$TIMESTAMP.log"
-    exec > "$LOGPATH/$LOGNAME-$TIMESTAMP.log" 2>&1
     rke2_pre
 }
 

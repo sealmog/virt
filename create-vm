@@ -156,15 +156,15 @@ cat > "$VM_IMAGE_DIR/init/user-data" << EOF
 write_files:
 - content: |
     #!/bin/bash
-    set -e
+    set -x
 
     LOGNAME="runcmd"
     LOGPATH="/root"
     TIMESTAMP="$(date +%Y%m%d_%H%M)"
 
-    echo "runcmd log will be written to $LOGPATH/$LOGNAME-$TIMESTAMP.log"
-    exec > "${LOGPATH}/${LOGNAME}-${TIMESTAMP}.log" 2>&1
-    /usr/bin/curl -sfL ${EXEC} | /bin/sh -
+    echo "runcmd log will be written to \$LOGPATH/\$LOGNAME-\$TIMESTAMP.log"
+    exec > "\$LOGPATH/\$LOGNAME-\$TIMESTAMP.log" 2>&1
+    /usr/bin/curl -sfL ${EXEC} | /bin/bash -
   path: /root/runcmd.sh
 
 runcmd:
