@@ -13,6 +13,7 @@ VCPUS=2
 STORAGE=60
 BRIDGE=virbr0
 ETH=enp3s0
+OS=centos-stream10
 MAC=
 VERBOSE=
 ADDR=
@@ -36,6 +37,7 @@ OPTIONS:
    -c      Number of VCPUs (defaults to ${VCPUS})
    -s      Amount of storage to allocate in GB (defaults to ${STORAGE})
    -t      Ehernet interface (default enp3s0)
+   -o      OS info (default centos-stream10)
    -b      Bridge interface to use (defaults to ${BRIDGE})
    -m      MAC address to use (default is to use a randomly-generated MAC)
    -a      IPv4 address (default 192.168.0.42/24)
@@ -47,7 +49,7 @@ OPTIONS:
 EOF
 }
 
-while getopts "h:n:i:k:r:c:s:t:b:m:a:g:d:e:x:v" option; do
+while getopts "h:n:i:k:r:c:s:t:o:b:m:a:g:d:e:x:v" option; do
     case "${option}"
     in
         h)
@@ -61,6 +63,7 @@ while getopts "h:n:i:k:r:c:s:t:b:m:a:g:d:e:x:v" option; do
         c) VCPUS=${OPTARG};;
         s) STORAGE=${OPTARG};;
         t) ETH=${OPTARG};;
+        o) OS=${OPTARG};;
         b) BRIDGE=${OPTARG};;
         m) MAC=${OPTARG};;
         a) ADDR=${OPTARG};;
@@ -154,7 +157,13 @@ write_files:
 - content: |
     #!/bin/sh
     set -e
-    touch /root/sample.log
+
+    LOGNAME="runcmd"
+    LOGPATH="/root"
+    TIMESTAMP="$(date +%Y%m%d_%H%M)"
+
+    echo "runcmd log will be written to $LOGPATH/$LOGNAME-$TIMESTAMP.log"
+    exec > "$LOGPATH/$LOGNAME-$TIMESTAMP.log" 2>&1
     /usr/bin/curl -sfL ${EXEC} | /bin/sh -
   path: /root/runcmd.sh
 
@@ -164,9 +173,11 @@ runcmd:
 users:
   - name: ansible
     sudo: ["ALL=(ALL) NOPASSWD:ALL"]
-    groups: sudo
+    groups: sudo,users,admin,wheel
     shell: /bin/bash
-    homedir: /var/ansible
+    homedir: /home/ansible
+    lock_passwd: true
+    # plain_text_passwd: password
     ssh_authorized_keys:
 EOF
 
@@ -220,7 +231,7 @@ virt-install \
     --accelerate \
     --check-cpu \
     --force \
-    --osinfo ubuntu24.04 \
+    --osinfo "${OS}" \
     --watchdog=default \
     --graphics vnc \
     --noautoconsole \
