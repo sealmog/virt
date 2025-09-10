@@ -3,8 +3,14 @@
 set -e
 
 system() {
-cat <<EOF | tee /etc/sysctl.d/11-k8s.conf
+cat << EOF | tee /etc/sysctl.d/11-k8s.conf
 net.ipv4.ip_forward = 1
+kernel.keys.root_maxbytes = 25000000
+kernel.keys.root_maxkeys = 1000000
+kernel.panic = 10
+kernel.panic_on_oops = 1
+vm.overcommit_memory = 1
+vm.panic_on_oom = 0
 EOF
 
 sysctl --system

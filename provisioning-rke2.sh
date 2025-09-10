@@ -3,7 +3,7 @@
 set -e
 
 create_dir() {
-    if [ -d "$1" ]; then
+    if [[ -d "$1" ]]; then
         echo "Directory '$1' exists."
     else
         mkdir -p "$1"
@@ -12,24 +12,27 @@ create_dir() {
 
 rke2_pre() {
 
-ETCRKE2=/etc/rancher/rke2
-create_dir $ETCRKE2
+RKE2_ETC=/etc/rancher/rke2
+create_dir "${RKE2_ETC}"
 
-KUBEAUDIT=/var/log/kube-audit
-create_dir $KUBEAUDIT
+RKE2_DATA=/data/rancher/rke2
+create_dir "${RKE2_DATA}"
+
+KUBE_AUDIT=/var/log/kube-audit
+create_dir "${KUBE_AUDIT}"
 
 if "${FIRST}" ; then
 cat <<EOF >> /etc/rancher/rke2/config.yaml
-token: $TOKEN
+token: ${TOKEN}
 tls-san:
-  - $RCH
+  - ${RCH}
 EOF
 else
 cat <<EOF >> /etc/rancher/rke2/config.yaml
-token: $TOKEN
-server: https://$RCH:9345
+token: ${TOKEN}
+server: https://${RCH}:9345
 tls-san:
-  - $RCH
+  - ${RCH}
 EOF
 fi
 
@@ -41,18 +44,18 @@ cat <<EOF >> /etc/profile.d/rke2.sh
 #                                                                              #
 ################################################################################
 
-# Add /var/lib/rancher/rke2/bin to the path for sh compatible users
+# Add /data/rancher/rke2/bin to the path for sh compatible users
 
 if [ -z "${PATH-}" ] ; then
-    export PATH=/var/lib/rancher/rke2/bin
-elif ! echo "${PATH}" | grep -q /var/lib/rancher/rke2/bin ; then
-    export PATH="${PATH}:/var/lib/rancher/rke2/bin"
+    export PATH=/data/rancher/rke2/bin
+elif ! echo "${PATH}" | grep -q /data/rancher/rke2/bin ; then
+    export PATH="${PATH}:/data/rancher/rke2/bin"
 fi
 
 # Add config for crictl
 
-if ! echo "${CRI_CONFIG_FILE-}" | grep -q /var/lib/rancher/rke2/agent/etc/crictl.yaml ; then
-    export CRI_CONFIG_FILE=/var/lib/rancher/rke2/agent/etc/crictl.yaml
+if ! echo "${CRI_CONFIG_FILE-}" | grep -q /data/rancher/rke2/agent/etc/crictl.yaml ; then
+    export CRI_CONFIG_FILE=/data/rancher/rke2/agent/etc/crictl.yaml
 fi
 
 # Add config for kubectl

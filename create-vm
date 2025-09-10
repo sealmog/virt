@@ -22,8 +22,7 @@ DNS=192.168.0.1
 DNS_SEARCH=
 FIRST=false
 
-usage()
-{
+usage() {
 cat << EOF
 usage: $0 options
 
@@ -86,79 +85,83 @@ while getopts "h:n:i:k:r:c:s:t:o:b:m:a:g:d:e:x:u:w:f:v" option; do
     esac
 done
 
-if [[ -z $HOSTNAME ]]; then
+if [[ -z ${HOSTNAME} ]]; then
     echo "ERROR: Host name is required"
     usage
     exit 1
 fi
 
-if [[ -z $IMG_FQN ]]; then
+if [[ -z ${IMG_FQN} ]]; then
     echo "ERROR: Base cloud image file name is required"
     usage
     exit 1
 fi
 
-if [[ -z $AUTH_KEYS_FQN ]]; then
-    echo "ERROR: ansible public key file $AUTH_KEYS_FQN not found"
+if [[ -z ${AUTH_KEYS_FQN} ]]; then
+    echo "ERROR: ansible public key file ${AUTH_KEYS_FQN} not found"
     usage
     exit 1
 fi
 
-if ! [[ -f $IMG_FQN ]]; then
-    echo "ERROR: $IMG_FQN file not found"
+if ! [[ -f ${IMG_FQN} ]]; then
+    echo "ERROR: ${IMG_FQN} file not found"
     usage
     exit 1
 fi
 
-if [[ -z $ADDR ]]; then
+if [[ -z ${ADDR} ]]; then
     echo "ERROR: IPv4 address is required"
     usage
     exit 1
 fi
 
-if [[ -z $GW ]]; then
+if [[ -z ${GW} ]]; then
     echo "ERROR: IPv4 gateway is required"
     usage
     exit 1
 fi
 
-if [[ -z $DNS ]]; then
+if [[ -z ${DNS} ]]; then
     echo "ERROR: IPv4 DNS is required"
     usage
     exit 1
 fi
 
-if [[ -z $DNS_SEARCH ]]; then
+if [[ -z ${DNS_SEARCH} ]]; then
     echo "ERROR: DNS search is required"
     usage
     exit 1
 fi
 
-if [[ -z $EXEC ]]; then
+if [[ -z ${EXEC} ]]; then
     echo "ERROR: EXEC script URL is required"
     usage
     exit 1
 fi
 
-if [[ -n $VERBOSE ]]; then
-    echo "Building ${HOSTNAME} in $VM_IMAGE_DIR"
+if [[ -n ${VERBOSE} ]]; then
+    echo "Building ${HOSTNAME} in ${VM_IMAGE_DIR}"
     set -xv
 fi
 
-mkdir -p "$VM_IMAGE_DIR"/{images,xml,init,base}
+mkdir -p "${VM_IMAGE_DIR}"/{images,xml,init,base}
 
 echo "Creating a qcow2 image file ${VM_IMAGE_DIR}/images/${HOSTNAME}.qcow2 that uses the cloud image file ${IMG_FQN} as its base"
 qemu-img create -b "${IMG_FQN}" -f qcow2 -F qcow2 "${VM_IMAGE_DIR}/images/${HOSTNAME}.qcow2" "${STORAGE}G"
 
-echo "Creating meta-data file $VM_IMAGE_DIR/init/meta-data"
-cat > "$VM_IMAGE_DIR/init/meta-data" << EOF
+echo "Creating meta-data file ${VM_IMAGE_DIR}/init/meta-data"
+cat > "${VM_IMAGE_DIR}/init/meta-data" << EOF
 instance-id: ${HOSTNAME}
 local-hostname: ${HOSTNAME}
 EOF
 
-echo "Creating user-data file $VM_IMAGE_DIR/init/user-data"
-cat > "$VM_IMAGE_DIR/init/user-data" << EOF
+echo "Creating user-data file ${VM_IMAGE_DIR}/init/user-data"
+cat > "${VM_IMAGE_DIR}/init/user-data" << EOF
 #cloud-config
+
+packages:
+ - git
+ - iptables-nft
 
 write_files:
 - content: |
@@ -172,10 +175,12 @@ write_files:
     echo "runcmd log will be written to \$LOGPATH/\$LOGNAME-\$TIMESTAMP.log"
     exec > "\$LOGPATH/\$LOGNAME-\$TIMESTAMP.log" 2>&1
 
-    /usr/bin/sed -i "s/SELINUX=enforcing/SELINUX=disabled/" /etc/selinux/config
-    /usr/sbin/setenforce 0
+    if [ -f "/etc/selinux/config" ]; then
+      /usr/bin/sed -i "s/SELINUX=enforcing/SELINUX=disabled/" /etc/selinux/config
+      /usr/sbin/setenforce 0
+    fi
 
-    /usr/bin/curl -sfL ${EXEC} | TOKEN=$TOKEN RCH=$RCH FIRST=$FIRST /bin/bash -x -
+    /usr/bin/curl -sfL ${EXEC} | TOKEN=${TOKEN} RCH=${RCH} FIRST=${FIRST} /bin/bash -x -
   path: /root/runcmd.sh
 
 runcmd:
@@ -192,8 +197,8 @@ users:
     ssh_authorized_keys:
 EOF
 
-echo "Creating network-config file $VM_IMAGE_DIR/init/network-config"
-cat > "$VM_IMAGE_DIR/init/network-config" << EOF
+echo "Creating network-config file ${VM_IMAGE_DIR}/init/network-config"
+cat > "${VM_IMAGE_DIR}/init/network-config" << EOF
 network:
   version: 2
   ethernets:
@@ -208,16 +213,16 @@ network:
         search: [${DNS_SEARCH}]
 EOF
 
-echo "Adding keys from the public key file $AUTH_KEYS_FQN to the user-data file"
+echo "Adding keys from the public key file ${AUTH_KEYS_FQN} to the user-data file"
 while IFS= read -r key; do
-    echo "      - $key" >> "$VM_IMAGE_DIR/init/user-data"
-done < <(grep -v '^ *#' < "$AUTH_KEYS_FQN")
+    echo "      - ${key}" >> "${VM_IMAGE_DIR}/init/user-data"
+done < <(grep -v '^ *#' < "${AUTH_KEYS_FQN}")
 
-echo "Generating the cidata ISO file $VM_IMAGE_DIR/images/${HOSTNAME}-cidata.iso"
+echo "Generating the cidata ISO file ${VM_IMAGE_DIR}/images/${HOSTNAME}-cidata.iso"
 (
-    cd "$VM_IMAGE_DIR/init/"
+    cd "${VM_IMAGE_DIR}/init/"
     genisoimage \
-        -output "$VM_IMAGE_DIR/images/${HOSTNAME}-cidata.img" \
+        -output "${VM_IMAGE_DIR}/images/${HOSTNAME}-cidata.img" \
         -volid cidata \
         -rational-rock \
         -joliet \
@@ -225,7 +230,7 @@ echo "Generating the cidata ISO file $VM_IMAGE_DIR/images/${HOSTNAME}-cidata.iso
 )
 
 MACCMD=
-if [[ -n $MAC ]]; then
+if [[ -n ${MAC} ]]; then
     MACCMD="--mac=${MAC}"
 fi
 
@@ -258,7 +263,7 @@ virt-install \
 # Make a backup of the VM's XML definition file
 virsh dumpxml "${HOSTNAME}" > "${VM_IMAGE_DIR}/xml/${HOSTNAME}.xml"
 
-if [[ -n $VERBOSE ]]; then
+if [[ -n ${VERBOSE} ]]; then
     set +xv
 fi
 
