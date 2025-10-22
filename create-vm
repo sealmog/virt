@@ -180,12 +180,8 @@ write_files:
       /usr/sbin/setenforce 0
     fi
 
-    cat <<EOF | tee /etc/sysctl.d/10-ipv6.conf
-    net.ipv6.conf.all.disable_ipv6 = 1
-    net.ipv6.conf.default.disable_ipv6 = 1
-    EOF
-
-    sysctl --load /etc/sysctl.d/10-ipv6.conf
+    nmcli connection modify "cloud-init enp3s0" ipv6.method "disabled"
+    nmcli connection up "cloud-init enp3s0"
 
     /usr/bin/curl -sfL ${EXEC} | TOKEN=${TOKEN} RCH=${RCH} FIRST=${FIRST} /bin/bash -x -
   path: /root/runcmd.sh
