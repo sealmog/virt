@@ -165,6 +165,10 @@ packages:
 
 write_files:
 - content: |
+    options rotate timeout:1 attempts:1
+  append: true
+  path: /etc/resolv.conf
+- content: |
     #!/bin/bash
     set -x
 
