@@ -217,8 +217,8 @@ network:
     ${ETH}:
       addresses: [${ADDR}]
       gateway4: ${GW}
-      dhcp4: flase
-      dhcp6: false
+      dhcp4: no
+      dhcp6: no
       match:
         macaddress: '${MAC}'
       nameservers:
