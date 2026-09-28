@@ -218,8 +218,8 @@ network:
       addresses: [${ADDR}]
       gateway4: ${GW}
       dhcp4: no
-      dhcp6: no
-      accept-ra: no
+      dhcp6: false
+      accept-ra: false
       match:
         macaddress: '${MAC}'
       nameservers:
