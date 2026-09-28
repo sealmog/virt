@@ -186,7 +186,7 @@ write_files:
     if [ -f "/etc/selinux/config" ]; then
       /usr/bin/sed -i "s/SELINUX=enforcing/SELINUX=disabled/" /etc/selinux/config
       /usr/sbin/setenforce 0
-    fi
+    oud-init i
 
     # nmcli connection modify "cloud-init enp3s0" ipv6.method "disabled"
     # nmcli connection up "cloud-init enp3s0"
@@ -219,6 +219,7 @@ network:
       gateway4: ${GW}
       dhcp4: no
       dhcp6: no
+      accept-ra: no
       match:
         macaddress: '${MAC}'
       nameservers:
