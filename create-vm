@@ -195,7 +195,7 @@ write_files:
   path: /root/runcmd.sh
 
 runcmd:
-  - [ systemctl, restart, systemd-sysctl ]
+  - systemctl restart systemd-sysctl
   - [ /bin/bash, /root/runcmd.sh ]
 
 users:
