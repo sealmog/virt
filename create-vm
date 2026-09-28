@@ -169,6 +169,13 @@ write_files:
   append: true
   path: /etc/resolv.conf
 - content: |
+    ip_vs
+    nf_conntrack
+    ip_vs_rr
+    ip_vs_mh
+    ip_vs_wlc
+  path: /etc/modules-load.d/ipvs.conf
+- content: |
     #!/bin/bash
     set -x
 
@@ -218,15 +225,6 @@ network:
       nameservers:
         addresses: [${DNS}]
         search: [${DNS_SEARCH}]
-EOF
-
-echo "Loading IPVS modules"
-cat > "/etc/modules-load.d/ipvs.conf" << EOF
-ip_vs
-nf_conntrack
-ip_vs_rr
-ip_vs_mh
-ip_vs_wlc
 EOF
 
 echo "Adding keys from the public key file ${AUTH_KEYS_FQN} to the user-data file"
