@@ -186,8 +186,10 @@ write_files:
     if [ -f "/etc/selinux/config" ]; then
       /usr/bin/sed -i "s/SELINUX=enforcing/SELINUX=disabled/" /etc/selinux/config
       /usr/sbin/setenforce 0
-    oud-init i
-
+    fi
+    
+    /bin/systemctl restart systemd-sysctl
+  
     # nmcli connection modify "cloud-init enp3s0" ipv6.method "disabled"
     # nmcli connection up "cloud-init enp3s0"
 
@@ -196,7 +198,6 @@ write_files:
 
 runcmd:
   - [ /bin/bash, /root/runcmd.sh ]
-  - [ /bin/systemctl, restart, systemd-sysctl ]
 
 users:
   - name: ansible
@@ -218,8 +219,7 @@ network:
       addresses: [${ADDR}]
       gateway4: ${GW}
       dhcp4: no
-      dhcp6: false
-      accept-ra: false
+      dhcp6: no
       match:
         macaddress: '${MAC}'
       nameservers:
