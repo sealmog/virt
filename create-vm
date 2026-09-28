@@ -169,12 +169,9 @@ write_files:
   append: true
   path: /etc/resolv.conf
 - content: |
-    ip_vs
-    nf_conntrack
-    ip_vs_rr
-    ip_vs_mh
-    ip_vs_wlc
-  path: /etc/modules-load.d/ipvs.conf
+    net.ipv6.conf.all.disable_ipv6 = 1
+    net.ipv6.conf.default.disable_ipv6 = 1
+  path: /etc/sysctl.d/10-disable-ipv6.conf
 - content: |
     #!/bin/bash
     set -x
@@ -191,8 +188,10 @@ write_files:
       /usr/sbin/setenforce 0
     fi
 
-    nmcli connection modify "cloud-init enp3s0" ipv6.method "disabled"
-    nmcli connection up "cloud-init enp3s0"
+    # nmcli connection modify "cloud-init enp3s0" ipv6.method "disabled"
+    # nmcli connection up "cloud-init enp3s0"
+
+    sysctl --system
 
     /usr/bin/curl -sfL ${EXEC} | TOKEN=${TOKEN} RCH=${RCH} FIRST=${FIRST} /bin/bash -x -
   path: /root/runcmd.sh
