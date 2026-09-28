@@ -191,12 +191,11 @@ write_files:
     # nmcli connection modify "cloud-init enp3s0" ipv6.method "disabled"
     # nmcli connection up "cloud-init enp3s0"
 
-    sysctl --system
-
     /usr/bin/curl -sfL ${EXEC} | TOKEN=${TOKEN} RCH=${RCH} FIRST=${FIRST} /bin/bash -x -
   path: /root/runcmd.sh
 
 runcmd:
+  - [ systemctl, restart, systemd-sysctl ]
   - [ /bin/bash, /root/runcmd.sh ]
 
 users:
